@@ -20,9 +20,26 @@ namespace UDPCLIENT
     /// </summary>
     public partial class MainWindow : Window
     {
+        private UDPCLIRNT Recv = null;
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            button1.IsEnabled = true;
+            button.IsEnabled = false;
+            //    Recv = new UDPCLIRNT();
+            //    Recv.recv();
+            //    Recv.SetFileName("test.wav");
+        }
+
+        private void button1_Click(object sender, RoutedEventArgs e)
+        {
+            Recv.Close();
+            button.IsEnabled = true;
+            button1.IsEnabled = false;
         }
     }
 }
