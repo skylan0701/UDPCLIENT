@@ -1,13 +1,9 @@
-﻿using Microsoft.DirectX;
-using Microsoft.DirectX.DirectSound;
+﻿using Microsoft.DirectX.DirectSound;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using ZLibNet;
 
@@ -38,15 +34,18 @@ namespace UDPCLIENT
         public UDPCLIRNT()
         {
 
+
+        }
+        public int recv()
+        {
+
+
             // 设定录音格式 
 
             mWavFormat = CreateWaveFormat();
 
             CreateSoundFile();
 
-        }
-        public void recv()
-        {
             int recv;
 
             string str;
@@ -61,14 +60,19 @@ namespace UDPCLIENT
            
             while (true)
             {
-                data = new byte[1024];
+                data = new byte[5000];
+                try {
+                    recv = newsock.ReceiveFrom(data, ref Remote);
+                }
+                catch /*(Exception e)*/
+                {
+                   // MessageBox.Show(e.Message, "错误");
+                    return 1;
+                }
 
-                recv = newsock.ReceiveFrom(data, ref Remote);
 
-                data = ZLibCompressor.DeCompress(data);
 
-                mSampleCount += data.Length;
-            
+
                 str = Encoding.Unicode.GetString(data);
 
                 try
@@ -82,6 +86,8 @@ namespace UDPCLIENT
                 }
 
 
+                data = ZLibCompressor.DeCompress(data);
+                mSampleCount += data.Length;
                 mWriter.Write(data, 0, data.Length);
 
             }
@@ -106,7 +112,7 @@ namespace UDPCLIENT
 
             mWaveFile = null;
 
-
+            return 0;
 
         }
 
@@ -322,6 +328,14 @@ namespace UDPCLIENT
             newsock.Shutdown(SocketShutdown.Both);
             newsock.Dispose();
             newsock = null;
+            if (mWriter != null)
+                mWriter.Close();
+            if (mWaveFile != null)
+                mWaveFile.Close();
+
+            mWriter = null;
+
+            mWaveFile = null;
         }
 
         /// <summary> 

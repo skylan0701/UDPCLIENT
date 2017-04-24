@@ -1,17 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Windows;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System;
 
 namespace UDPCLIENT
 {
@@ -21,6 +11,7 @@ namespace UDPCLIENT
     public partial class MainWindow : Window
     {
         private UDPCLIRNT Recv = null;
+        private Thread startrecv = null;
         public MainWindow()
         {
             InitializeComponent();
@@ -28,18 +19,52 @@ namespace UDPCLIENT
 
         private void button_Click(object sender, RoutedEventArgs e)
         {
+            ThreadCompleteHandler result = ThreadRunOver;
             button1.IsEnabled = true;
             button.IsEnabled = false;
-            //    Recv = new UDPCLIRNT();
-            //    Recv.recv();
-            //    Recv.SetFileName("test.wav");
+            Recv = new UDPCLIRNT();
+            Recv.SetFileName("test.wav");
+            startrecv = new Thread((ThreadStart)delegate
+            {
+                result(Recv.recv());//调用result委托
+
+            });
+            startrecv.IsBackground = true;
+            startrecv.Start();
         }
 
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             Recv.Close();
+            Recv = null;
+            if (startrecv != null)
+                startrecv.Abort();
+            startrecv = null;
             button.IsEnabled = true;
             button1.IsEnabled = false;
         }
+
+        public delegate void ThreadCompleteHandler(int i);
+
+        public void ThreadRunOver(int result)
+        {
+            if (result == 0)
+            {
+                Recv.Close();
+                Recv = null;
+                this.Dispatcher.Invoke(
+                    new Action(
+                    delegate
+                    {
+
+                        button.IsEnabled = true;
+                        button1.IsEnabled = false;
+                    }
+                    )
+                    );
+            }
+        }
+
     }
+
 }
